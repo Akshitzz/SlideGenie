@@ -3,7 +3,8 @@ import {onAuthenticateUser} from "@/actions/user"
 import { redirect } from "next/navigation"
 import { getRecentProjects } from "@/actions/project"
 import AppSidebar from "@/components/global/app-sidebar"
-import { SidebarProvider } from "@/components/ui/sidebar"
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
+import UpperInfoBar from "@/components/global/upper-info-bar"
   type Props = {
   children: React.ReactNode
 }
@@ -17,6 +18,11 @@ const Layout = async ({children}: Props) => {
   return <SidebarProvider>
     <AppSidebar  user ={checkUser.user} recentProjects={recentProjects.projects || []} >
     </AppSidebar>
+    <SidebarInset>
+      <UpperInfoBar user={checkUser.user}>
+        {children}
+      </UpperInfoBar>
+    </SidebarInset>
   </SidebarProvider>
 }
 

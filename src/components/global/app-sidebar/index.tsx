@@ -18,7 +18,7 @@ const AppSidebar = ({
     ...props
 }: Props & React.ComponentProps<typeof Sidebar>) => {
   return <Sidebar {...props} collapsible="icon" className="max-w-[212px] bg-background-90">
-    <SidebarHeader className="pt-6 px-3 pb-0">
+    <SidebarHeader className="pt-6 px-2 pb-0">
         <SidebarMenuButton className="data-[state=open]:text-sidebar-accent-foreground"
         size="lg"
         >
@@ -36,7 +36,7 @@ const AppSidebar = ({
        <RecentOpen recentProjects={recentProjects}/>
     </SidebarContent>
     <SidebarFooter>
-      <NavFooter/>
+      <NavFooter prismaUser={user}/>
     </SidebarFooter>
   </Sidebar>
 }
