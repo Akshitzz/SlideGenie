@@ -1,10 +1,12 @@
 "use client"
 import React from "react"
 import { Project ,User } from "@prisma/client"
-import { Sidebar ,SidebarContent,SidebarHeader, SidebarMenuButton } from "@/components/ui/sidebar"
+import { Sidebar ,SidebarContent,SidebarFooter,SidebarHeader, SidebarMenuButton } from "@/components/ui/sidebar"
 import { AvatarFallback, Avatar, AvatarImage } from "@/components/ui/avatar"
 import NavMain from "./nav-main"
 import {data} from '@/lib/constants'
+import RecentOpen from "./recent-open"
+import NavFooter from "./nav-footer"
 type Props = {
 recentProjects: Project[]
 user: User
@@ -31,7 +33,11 @@ const AppSidebar = ({
     </SidebarHeader>
     <SidebarContent className="px-3 mt-10 gap-y-6">
        <NavMain items={data.navMain}/>
+       <RecentOpen recentProjects={recentProjects}/>
     </SidebarContent>
+    <SidebarFooter>
+      <NavFooter/>
+    </SidebarFooter>
   </Sidebar>
 }
 export default AppSidebar
