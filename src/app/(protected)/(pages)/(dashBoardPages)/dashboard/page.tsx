@@ -16,7 +16,7 @@ const DashBoardPage = async () => {
       </div>
       </div>
       {/* Projects */}
-      {projects.projects&& projects.projects.length >0 ?<Projects/>:<NotFound/>}
+      {projects.projects&& projects.projects.length >0 ?<Projects projects={projects.projects}/>:<NotFound/>}
     </div>
   )
 }
