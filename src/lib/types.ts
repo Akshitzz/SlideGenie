@@ -59,3 +59,22 @@ export type ContentType =
 | 'table'
 | 'tableOfContents'
 
+
+export interface Theme{
+    name:string;
+    fontFamily:string;
+    fontColor :string;
+    backgroundColor:string;
+    slideBackgroundColor:string;
+    accentColor:string;
+    gradientBackground?:string;
+    sidebarColor?:string;
+    navbarColor?:string;
+    type:'light' | 'dark';
+}
+
+export interface OutlineCard {
+    title:string,
+    id:string,
+    order:number
+}

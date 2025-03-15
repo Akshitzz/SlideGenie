@@ -10,13 +10,12 @@ import AlertDialogueBox from "../alert-dialog";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner"
-import { RecoverProject } from "@/actions/project";
+import { deleteProject, RecoverProject } from "@/actions/project";
 type Props ={
 
     projectId :string,
     title :string,
     createdAt :string,
-    src:string,
     isDelete?:boolean,
     slideData:JsonValue
     themeName :string
@@ -25,7 +24,6 @@ const ProjectCard = ({
     createdAt,
     projectId,
     slideData,
-    src,
     title,
     isDelete,
     themeName
@@ -44,8 +42,22 @@ const ProjectCard = ({
             return
         }
         try {
-                const res= await RecoverProject(projectId)
-        } catch(error){
+            const res= await deleteProject(projectId)
+            if(res.status !==200){
+                  toast.error('Oopsie',{
+                    description :res.error || 'Failed to delete the project'
+                  })
+                  return
+                }
+                setOpen(false)
+                router.refresh();
+                toast.success('Success',{
+                    description : 'Project recoverd successfully'
+                })
+            } catch(error){
+                toast.error('Error',{
+                    description : 'Something went wrong .Please contact support'
+                })
 
         }
     }
@@ -55,6 +67,37 @@ const handleNavigation=()=>{
 }
 
 const theme = themes.find((theme)=> theme.name ===themeName) || themes[0]
+        const  handleDelete =async()=>{
+            setLoading(true)
+            if (!projectId) {
+                setLoading(false)
+                toast("Error!",{
+                    description:'Project not found',
+                })
+                return
+            }
+            try {
+                const res= await RecoverProject(projectId)
+                if(res.status !==200){
+                      toast.error('Oopsie',{
+                        description :res.error || 'Something went wrong'
+                      })
+                      return
+                    }
+                    setOpen(false)
+                    router.refresh();
+                    toast.success('Success',{
+                        description : 'Project recoverd successfully'
+                    })
+                } catch(error){
+                    toast.error('Error',{
+                        description : 'Something went wrong .Please contact support'
+                    })
+    
+            }
+        }
+
+
     return (
         <motion.div
         className={`group w-full flex flex-col gap-y-3 rounded-xl p-3 transition-colors ${
@@ -65,10 +108,10 @@ const theme = themes.find((theme)=> theme.name ===themeName) || themes[0]
             className="relative aspect-[16-10] overflow-hidden rounded-lg cursor-pointer"
             onClick={handleNavigation}
             >
-                <ThumbnailPreview theme={theme}
+                {/* <ThumbnailPreview theme={theme}
                 //  WIP : Add the slide
-                // slide={JSON.parse(JSON.stringify(slideData))?.[0]}
-                />
+                slide={JSON.parse(JSON.stringify(slideData))?.[0]}
+                /> */}
             </div>
             <div className="w-full">
                 <div className="space-y-1">
@@ -81,7 +124,8 @@ const theme = themes.find((theme)=> theme.name ===themeName) || themes[0]
                             {timeAgo(createdAt)}
                         </p>
                         {
-                          <AlertDialogueBox
+                          isDelete ? (
+                            <AlertDialogueBox
                           description="This will recover your project and restore data"
                           className="bg-green-500 text-white dark:bg-green-600 hover:bg-green-600"
                           loading={loading}
@@ -98,6 +142,25 @@ const theme = themes.find((theme)=> theme.name ===themeName) || themes[0]
                                         Recover
                                 </Button>
                           </AlertDialogueBox>  
+                          ) :(
+                            <AlertDialogueBox
+                            description="This will delete your project and sent to trash "
+                            className="bg-red-500 text-white dark:bg-red-500 hover:bg-red-600 dark:hover:bg-red-700"
+                            loading={loading}
+                            open={open}
+                            onClick={handleDelete}
+                            handleOpen={()=>setOpen(!open)}
+                            >
+                                  <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="bg-background-80 dark:hover:bg-background-90"
+                                  disabled={loading}
+                                  >
+                                        Delete
+                                  </Button>
+                            </AlertDialogueBox>  
+                          )
                         }
                     </div>
                 </div>

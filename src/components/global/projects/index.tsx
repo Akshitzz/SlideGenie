@@ -23,7 +23,7 @@ const Projects =({projects}:Props)=>{
                 createdAt={project.createdAt.toString()}
                 isDelete={project.isDeleted}
                 slideData={project.slides}
-                src={project.thumbnail || 'https://unsplash.com/photos/a-pile-of-coins-sitting-on-top-of-each-other-1kFmEbec1nQ'}
+                themeName={project.themeName}
             />
         ))}
         

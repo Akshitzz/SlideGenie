@@ -16,11 +16,10 @@ const Layout = async ({children}: Props) => {
     redirect("/sign-in")
   }
   return <SidebarProvider>
-    <AppSidebar  user ={checkUser.user} recentProjects={recentProjects.projects || []} >
-    </AppSidebar>
+    <AppSidebar  user ={checkUser.user} recentProjects={recentProjects.projects || []} />
     <SidebarInset>
       <UpperInfoBar user={checkUser.user} />
-        {children}
+        <div className="p-4">{children}</div>
     </SidebarInset>
   </SidebarProvider>
 }
