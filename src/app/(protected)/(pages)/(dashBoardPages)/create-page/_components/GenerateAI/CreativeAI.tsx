@@ -6,21 +6,30 @@ import { ChevronLeft, Loader2, RotateCcw } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import useCreativeAIStore from "@/store/useCreativeAIStore"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import {  useState } from "react"
+import {  useEffect, use, useState } from "react"
 import CardList from "../Common/CardList"
+import usePromptStore from "@/store/usePromptStore"
+import RecentPrompts from "./RecentPrompts"
+import { toast } from "sonner"
+import { generateCreativePrompt } from "@/actions/chatgpt"
+import { OutlineCard } from "@/lib/types"
+import {v4 as uuid, v4 } from 'uuid'
+import { createProject } from "@/actions/project"
+import { useSlideStore } from "@/store/useSlideStore"
 type Props = {
     onBack:()=>void
 }
 
 const CreateAI =({onBack}:Props) =>{
     const router = useRouter()
-  
+  const {setProject} = useSlideStore()
     const [editingCard,setEditingCard] =useState<string |null>(null)
-    const {currentAiPrompt ,setCurrentAiPrompt,outlines,resetOutlines} =useCreativeAIStore()
+    const {currentAiPrompt ,setCurrentAiPrompt,outlines,resetOutlines,addOutline,addMultipleOutlines} =useCreativeAIStore()
     const[noOfCards,setnoOfCards] = useState(0)
     const [selectedCard ,setSelectedCard] = useState<string | null>(null)
     const [editText,setEditText] = useState('')
     const [isGenerating, setIsGenerating] = useState(false)
+    const {prompts, addPrompt} = usePromptStore();
 
         const handleBack = ()=>{
             onBack()
@@ -34,7 +43,80 @@ const CreateAI =({onBack}:Props) =>{
 
         }
         //  WIP in progress it genrates outlines for the Slides
-        const generateOutlines = ()=>{}
+        const generateOutlines = async()=>{
+            
+            if(currentAiPrompt === ''){
+                toast.error('Error',{
+                    description : "Please Enter a prompt to genrate an outline"
+                })
+                return 
+            }  
+            setIsGenerating(true)  
+            const res = await generateCreativePrompt(currentAiPrompt)
+            if(res.status === 200 && res?.data?.outlines){
+                const cardsData :OutlineCard[] =[]
+                res.data?.outlines.map((outline:string,idx:number)=>{
+                  const newCard= {
+                    id:uuid(),
+                    title:outline,
+                    order:idx +1
+                  }  
+                  cardsData.push(newCard)
+                })
+                addMultipleOutlines(cardsData)
+                setnoOfCards(cardsData.length)
+                toast.success('Success',{description:'Outlines generated successfully'})
+            } else {
+                toast.error('Error',{
+                    description :' Outlines generated successfully .Please try again'
+                })
+            }
+            setIsGenerating(false)
+            //   WIP  : use OPEN AI and complete this stuff later
+        }
+        
+        const handleGenerate =async() =>{
+                setIsGenerating(true)
+                if(outlines.length === 0 ){
+                    toast.error('Error',{
+                        description: 'Failed to genrate outline. Please try again'
+                    })
+                    return
+                }
+                try{
+                    const res = await createProject(currentAiPrompt,
+                        outlines.slice(0,noOfCards)
+                    )
+                    if(res.status !== 200 || !res.data){
+                        throw new Error('Unable to create project')
+                    }
+                    router.push(`/presentation/${res.data.id}/select-theme`)
+                    setProject(res.data)
+
+
+                    addPrompt({
+                        id:v4(),
+                        title: currentAiPrompt || outlines?.[0]?.title,
+                        outlines:outlines,
+                        createdAt : new Date().toISOString()
+                    })
+                   toast.success('Success',{description:'Project created successfully !'}) 
+                    setCurrentAiPrompt('')
+                    resetOutlines()
+                }catch(error){
+                    console.log(error)
+                    toast.error('Error',
+                        {
+                            description :' Failed to create project'
+                        }
+                    )
+                } finally {
+                    setIsGenerating(false)
+                }
+        }
+        useEffect(()=>{
+            setnoOfCards(outlines.length)
+        },[outlines.length])
         return <motion.div
         className="space-y-6 w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8"
         variants={containerVairants}
@@ -113,7 +195,7 @@ const CreateAI =({onBack}:Props) =>{
             </motion.div>
             <div className="w-full flex justify-center items-center">
                 <Button className="font-medium text-lg flex gap-2 items-center"
-                // onClick={generateOutlines}
+                onClick={generateOutlines}
                 disabled={isGenerating}
                 >
                     {isGenerating ? (
@@ -126,7 +208,42 @@ const CreateAI =({onBack}:Props) =>{
                     )}
                 </Button>
             </div>
-            <CardList/>
+            <CardList
+            outlines={outlines}
+            addOutline={addOutline}
+            addMultipleOutlines={addMultipleOutlines}
+            editingCard={editingCard}
+            selectedCard={selectedCard}
+            editText={editText}
+            onEditChange={setEditText}
+            onCardSelect={setSelectedCard}
+            setEditingCard={setEditingCard}
+            setSelectedCard={setSelectedCard}
+            setEditingText={setEditText}
+            onCardDoubleClick={(id,title)=>{
+                setEditingCard(id)
+                setEditText(title)
+            }}
+            />
+            {outlines.length > 0 &&<Button 
+            className="w-full" 
+            onClick={handleGenerate}
+            disabled={isGenerating}
+            >
+                {
+                    isGenerating ? (
+                        <>
+                        <Loader2 className="animate-spin mr-2"/>
+                            "Generating"
+                        </> 
+                    ): (
+                        "Generate"
+                    )
+                }
+            </Button> 
+            }
+
+            {prompts?.length > 0 && <RecentPrompts/> }
         </motion.div>
 }
 

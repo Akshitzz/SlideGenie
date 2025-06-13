@@ -5,7 +5,7 @@ import React from "react";
 import usePromptStore from "@/store/usePromptStore";
 import CreatePage from "./CreatePage/CreatePage";
 import CreateAI from "./GenerateAI/CreativeAI";
-
+import ScratchPage from "./Scratch/ScratchPage";
 
 const RenderPage = () => {
     const router = useRouter()
@@ -32,7 +32,7 @@ const RenderPage = () => {
             case 'creative-ai':
                 return <CreateAI onBack={handleBack}/>
             case 'create-scratch':
-                return <></>
+                return <ScratchPage onBack={handleBack}/>
             default:
                 return null
         }
