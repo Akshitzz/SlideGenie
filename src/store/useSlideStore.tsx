@@ -2,14 +2,20 @@ import {create} from 'zustand'
 import {persist} from 'zustand/middleware'
 import { Slide, Theme } from '@/lib/types'
 import { Project } from '@prisma/client'
+import {v4 as uuidv4} from 'uuid'
 
 interface SlideState{
     slides :Slide[],
     project :Project | null
     setProject :(id:Project)=>void
         currentTheme : Theme
+        currentSlide:number,
+        removeSlide:(id:string)=>void
         setCurrentTheme: (theme :Theme)=> void
     setSlides : (slides:Slide[])=> void
+    getOrderedSlides :()=> Slide[]
+    reOrderSlides :(fromindex:number,toIndex:number)=> void
+    addSlideAtIndex:(slide:Slide,index:number) =>void
 }
 
 
@@ -27,13 +33,48 @@ const defaultTheme :Theme = {
 
 
 export const useSlideStore = create(
-    persist<SlideState>((set)=>({
+    persist<SlideState>((set,get)=>({
         project:null,
         slides : [],
         setSlides :(slides :Slide[]) =>set({slides}),
         setProject:(project)=>set({project}),
         currentTheme :defaultTheme,
-        setCurrentTheme :(theme:Theme) => set({currentTheme:theme})
+        currentSlide :0,
+        setCurrentTheme :(theme:Theme) => set({currentTheme:theme}),
+        getOrderedSlides: () => {
+            const state = get()
+            return [...state.slides].sort((a, b) => a.slideOrder - b.slideOrder)
+        },
+        addSlideAtIndex :(slide :Slide, index:number)=>
+            set((state)=>{
+                const newSlides = [...state.slides]
+                newSlides.splice(index,0,{...slide,id:uuidv4()})
+                newSlides.forEach((s,i)=>{
+                    s.slideOrder = i
+                })
+                return {slides :newSlides,currentSlide:index}
+
+            })
+        
+        ,
+        removeSlide :(id)=>
+            set((state)=>({
+                slides :state.slides.filter((slide)=>slide.id !== id),
+            }))
+        ,
+        reOrderSlides:(fromindex:number,toIndex:number)=>{
+            set((state)=>{
+                const newSlides= [...state.slides]
+                const [removed] = newSlides.splice(fromindex,1)
+                newSlides.splice(toIndex,0,removed)
+                return{
+                    slides: newSlides.map((slide,index)=>({
+                        ...slide,
+                        slideOrder:index
+                    }))
+                }
+            })
+        }
     }),
 
             {

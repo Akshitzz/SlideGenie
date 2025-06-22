@@ -5,7 +5,9 @@ import { useParams, useRouter } from 'next/navigation'
 import react, { useState } from 'react'
 import { Button } from 'react-day-picker'
 import { toast } from 'sonner'
-
+import { generateLayouts } from '@/actions/chatgpt'
+import {motion} from 'framer-motion'
+import { ScrollArea } from '@/components/ui/scroll-area'
 type Props= {
     selectedTheme :Theme,
     themes:Theme[]
@@ -36,8 +38,27 @@ const ThemePicker= ({selectedTheme,themes,onThemeSelect}:Props)=>{
                 return
             }
             try{
-                    const res = await Generatelayouts()
-            }catch(error){}
+                    const res = await generateLayouts(
+                        params.presentationId as string,
+                        currentTheme.name
+                    )
+
+                    if(res.status!== 200 && !res?.data){
+                        throw new Error('Failed to genrate layouts')
+                    }
+                    toast.success('Success',{
+                    description:"Layout generated successfully",
+                })
+
+                router.push(`/presentation/${project?.id}`)
+                    setSlides(res.data)
+            }catch(error){
+                toast.error('Error',{
+                    description:'Failed to generate layouts'
+                })
+            }finally{
+                setLoading(false)
+            }
     }
 
 return (
@@ -51,7 +72,7 @@ return (
         <div className='p-8 space-y-6 flex-shrink-0'>
             <div className='space-y-2'>
                 <h2
-                className='text-3xl font-bold traccking-tight'
+                className='text-3xl font-bold tracking-tight'
                 style={{color:selectedTheme.accentColor}}
                 >
                         Pick a Theme
@@ -77,7 +98,48 @@ return (
                     </p>: <p>Generate Theme</p> }
             </Button>
         </div>
-
+    <ScrollArea className='flex-grow px-8 pb-8'>
+        <div className='grid grid-cols-1 gap-4'>
+          {themes.map((theme)=>(
+              <motion.div
+            key={theme.name}
+            whileHover={{scale:1.02}}
+            whileTap={{scale:0.98}}
+            >
+                <Button
+                onClick={()=>onThemeSelect(theme)}
+                className='flex flex-col items-center justify-start p-6 w-full h-auto '
+                style={{
+                    fontFamily:theme.fontFamily,
+                    color:theme.fontColor,
+                    background:theme.gradientBackground || theme.backgroundColor,
+                }}
+                >
+                    <div className='w-full flex items-center justify-between'>
+                    <span className='text-xl font-bold'>{theme.name}</span>
+                    <div
+                    className='w-3 h-3 rounded-full'
+                    style={{backgroundColor:theme.accentColor}}
+                />
+                    </div>
+                    <div className='space-y-1 w-full'>
+                    <div 
+                    className='text-2xl font-bold'
+                    style={{color:theme.accentColor}}
+                    >   
+                    Title
+                    </div>
+                    <div className='text-base opacity-80'>
+                        Body &{' '}
+                        <span style={{color:theme.accentColor}}>link</span>
+                    </div>
+                        </div>
+                    </Button>
+            </motion.div>
+          ))
+          }
+        </div>
+    </ScrollArea>
     </div>
 )
 }

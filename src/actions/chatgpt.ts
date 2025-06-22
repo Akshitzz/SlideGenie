@@ -484,6 +484,38 @@ const existingLayouts = [
   },
 ];
 
+const generateImageUrl = async(prompt:string):Promise<string>=>{
+  try{
+    const improvedPrompt = `
+    Create a highly realistic ,professional image based on the following description. The image should look as if captured in the real life ,with attention to detail ,lighting and texture.
+
+    Desciption :${prompt}
+
+    Important Notes :
+    -The image must be in a photorealistic style and visually compeling.
+    -Ensure all text , signs ,or visible writing in the image are un English.
+    -Pay special attention to lighting, shadows and textures to make the image as lifelike as possible.
+
+    -Avoid elements that appear abstract ,cartoonish or overlay artisitic .The image should be suitable for professinal presentations.
+
+    -Focus on accurately depicting thr concept described , including specific objects , enviourment, mood and context . Maintain relevance to the description provided.
+
+    Example Use Cases : Business presentations , educational slides, professional designs
+    `
+    const dalleresponse = await openai.images.generate({
+      prompt : improvedPrompt,
+      n:1,
+      size : '1024x1024',
+    })
+    return dalleresponse.data[0]?.url || 'https://via.placeholder.com/1024'
+  }catch(error){
+    console.error('Failed to genrate image :',error)
+    return 'https://via.placeholder.com/1024'
+  }
+}
+
+
+
 const findImageComponents =(layout:ContentItem): ContentItem[] =>{
     const images = []
     if(layout.type === 'image'){
@@ -573,10 +605,12 @@ try {
             console.log('ERROR:',error)
             throw new Error('Invalid Json format recieved from AI')
         }
-
-
-}catch(error){
-
+        console.log('Layouts genrated successfully')
+        return {status :200 ,data: Jsonresponse}
+      }catch(error){
+        
+        console.error('ERROR:',error)
+        return {status:500,error:'Interna lserver error'}
 }
 }
 export const generateLayouts=async(projectId:string,theme:string)=>{
