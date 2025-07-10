@@ -1,3 +1,4 @@
+'use client'
 import { containerVairants } from "@/lib/constants"
 import { Project } from "@prisma/client"
 import {motion} from 'framer-motion'

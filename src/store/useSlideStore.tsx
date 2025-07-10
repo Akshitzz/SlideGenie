@@ -1,6 +1,6 @@
 import {create} from 'zustand'
 import {persist} from 'zustand/middleware'
-import { Slide, Theme } from '@/lib/types'
+import { ContentItem, Slide, Theme } from '@/lib/types'
 import { Project } from '@prisma/client'
 import {v4 as uuidv4} from 'uuid'
 
@@ -16,6 +16,12 @@ interface SlideState{
     getOrderedSlides :()=> Slide[]
     reOrderSlides :(fromindex:number,toIndex:number)=> void
     addSlideAtIndex:(slide:Slide,index:number) =>void
+    setCurrentSlide:(index:number)=>void
+    updateContentItem :(
+        slideId:string,
+        contentId:string,
+        newContent:string | string[] |string[][]
+    )=>void 
 }
 
 
@@ -62,6 +68,40 @@ export const useSlideStore = create(
                 slides :state.slides.filter((slide)=>slide.id !== id),
             }))
         ,
+        updateContentItem:(slideId, contentId, newContent)=>{
+            set((state)=>{
+                const updateContentRecursively=(item:ContentItem):ContentItem=>{
+                    if(item.id === contentId){
+                        return {...item,content:newContent}
+                    }
+                    if(
+                        Array.isArray(item.content) && 
+                        item.content.every((i)=> typeof i !== 'string')
+                    ){
+                        return {
+                            ...item,
+                            content:item.content.map((subItem)=>{
+                                if (typeof subItem !=='string'){
+                                    return updateContentRecursively(subItem as ContentItem)
+                                }
+                                return subItem
+                            }) as ContentItem[],
+                        }
+                    }
+                   
+                    return item
+                }
+                return {
+                    slides:state.slides.map((slide)=>
+                        slide.id === slideId
+                        ?{...slide,content:updateContentRecursively(slide.content)} : slide
+                    )
+                }
+            })
+        },
+        setCurrentSlide:(index)=>set({currentSlide:index})
+        ,
+
         reOrderSlides:(fromindex:number,toIndex:number)=>{
             set((state)=>{
                 const newSlides= [...state.slides]
