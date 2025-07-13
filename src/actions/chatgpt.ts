@@ -548,19 +548,19 @@ const replaceImagePlaceHolders =async ( layout :Slide) => {
 export const generateLayoutsJson = async(outlineArray:string[])=>{
 const prompt = `
  ### Gudelines :
- 1.Write layouts based on the specific outline provided .
- 2. use diverse and engaging on the specific outline provided
- 3. Adhere to the structure of existing layouts but add new styles or components if needed.
- 4. Fill placeholder data into content fields where required.
- 5. Generate unique image placeholders for the 'content' property of image components and also alt text according to the outline
- 6. Ensure proper formatting and schema alignment for the output json
+"imageAndText", "textAndImage","twoColumns","twoColumnwithHeadings","threeColumns","threeColumnsWithHeading","fourColumns","twoImageColumns",
+"threeImageColumns","twoImageColumns","fourImagelayout","tablelayout"
+The available CONTENT TYPES are "heading1", "title" , "paragraph","table","resizable-column","image","blockquote","numberedList","bulletList","todoList","calloutBox","codeBlock","tableOfContent","divider","column"
+
+Use these outlines as a starting point for the content of the presentations
+${JSON.stringify(outlineArray)}
 
  ### Example Layouts
  ${JSON.stringify(existingLayouts,null,2)}
  ### Outline Array
  ${JSON.stringify(outlineArray)}
 
- For each entry in the outline array, genrate :
+ For each entry in the outline array, generate :
  -A unique JSON layout with creative designs.
  -Properly filled content , including placeholders for image components
  - Clear anf well-structured JSON data. For Images
@@ -568,7 +568,7 @@ const prompt = `
  - Focus on the main subject(s) of the image and any relvant details such as colors ,shapes,people, or objects.
  -Ensure the alt text aligns with the context og the presentation slide it will be used on (e.g., professional,educational,business-related).
  -Avoid using terms like "image of" or "picture of," and instead focus directly on the content and meaning .
- Output thr layout on JSON format. Ensure there are no duplicate layouts across the array
+ Output th layout on JSON format. Ensure there are no duplicate layouts across the array
      
 `
 try {

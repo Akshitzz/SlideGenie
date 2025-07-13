@@ -1,7 +1,33 @@
 import React from 'react'
-
-type Props = {}
-
-const UploadImage =(props:Props)=>{
-    return <div>Upload Image </div>
+import {FileUploaderRegular} from '@uploadcare/react-uploader'
+import '@uploadcare/react-uploader/core.css'
+type Props = {
+    contentId:string,
+    onContentChange:(
+        contentId :string,
+        newContent :string | string[] | string [][]
+    )=>void
 }
+
+const UploadImage =({contentId,onContentChange}:Props)=>{
+
+    const handleChangeEvent=(e:{
+        cdnUrl:string|string[]|string[][]
+    })=>{
+        onContentChange(contentId,e.cdnUrl)
+    }
+
+
+    return <div>
+            <FileUploaderRegular
+            sourceList=' local , url, dropbox'
+            classNameUploader='uc-light'
+            pubkey={process.env.UPLOADCARE_PUBLIC_KEY!}
+            multiple={false}
+            maxLocalFileSizeBytes={10000000}
+            onFileUploadSuccess={handleChangeEvent}
+            />
+         </div>
+}
+
+export default UploadImage;

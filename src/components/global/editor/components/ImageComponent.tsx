@@ -1,5 +1,6 @@
 import Image from 'next/image'
 import React from 'react'
+import UploadImage from './UploadImage'
 
 type Props ={
     src :string 
@@ -23,6 +24,7 @@ const CustomImage =({
     onContentChange,
     contentId,
 }:Props)=>{
+    // WIP: add openai image 
     return <div className={`relative group w-full h-full rounded-lg`}>
         <Image
         src={src}
@@ -33,7 +35,10 @@ const CustomImage =({
         />
         {!isPreview && isEditable && (
             <div className='absolute top-0 left-0 hidden group-hover:black'>
-                
+                <UploadImage
+                contentId = {contentId}
+                onContentChange={onContentChange}
+                />
             </div>
         )}
     </div>
