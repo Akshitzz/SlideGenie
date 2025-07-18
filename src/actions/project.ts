@@ -3,7 +3,8 @@
 import { OutlineCard } from "@/lib/types"
 import { onAuthenticateUser } from "./user"
 import { client } from "@/lib/prisma"
-import { data } from "@/lib/constants"
+import { JsonValue } from "@prisma/client/runtime/library"
+
 export const getAllProjects = async () => {
   try{
     const checkUser = await onAuthenticateUser()
@@ -177,4 +178,30 @@ export const getProjectById = async (projectId :string)=>{
     console.error('ERROR',error)
     return {status:500,error:'Internal server error'}
   }
+}
+
+
+
+export const updateSlides = async (projectId:string , slides : JsonValue)=>{
+ try{
+      if(!projectId || !slides){
+        return {status :400,error:'Project Id and slides are required. '}
+      }
+
+        const updatedProject = await client.project.update({
+          where :{
+            id:projectId
+          },
+          data:{
+            slides,
+          }
+        })
+
+        if(!updatedProject){
+          return {status :500,error:"failed tp update slides"}
+        }
+ }catch(error){
+  console.error('Error',error)
+  return{ status :500,error:'Internal server error'}
+ }
 }
