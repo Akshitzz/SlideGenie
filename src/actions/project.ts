@@ -4,6 +4,8 @@ import { OutlineCard } from "@/lib/types"
 import { onAuthenticateUser } from "./user"
 import { client } from "@/lib/prisma"
 import { JsonValue } from "@prisma/client/runtime/library"
+import { themes } from "@/lib/constants"
+import { error } from "console"
 
 export const getAllProjects = async () => {
   try{
@@ -205,3 +207,98 @@ export const updateSlides = async (projectId:string , slides : JsonValue)=>{
   return{ status :500,error:'Internal server error'}
  }
 }
+
+
+export const updateTheme = async(projectId:string,theme :string)=>{
+          try{
+              if(!projectId || !theme){
+                    return {status:400,error:"Project ID and slides are required"}
+              }
+              const updatedProject = await client.project.update({
+                where:{
+                  id:projectId
+                },
+                data:{
+                  themeName :theme
+                }
+              })
+
+              if(!updatedProject){
+                return {status :500,error:"Failed to updated slides"}
+              }
+              return {status:200,data:updatedProject}
+
+          }catch(error){
+              console.error('ERROR',error)
+              return {status :500,error:'Internal server error'}
+          }
+}
+
+
+export const deleteAllProjects = async(projectIds:string[])=>{
+      try{
+
+        if(!Array.isArray(projectIds) || projectIds.length === 0){
+          return { status :400 ,error:'No project IDs provided'}
+        }
+        const checkUser = await onAuthenticateUser()
+        if(checkUser?.status!== 200 || !checkUser.user){
+          return {status :403, error:"User not authenticated"}
+        }
+        const userId = checkUser.user.id
+        const ProjectToDelete = await client.project.findMany({
+          where :{
+            id:{
+              in:projectIds,
+            },
+            userId :userId, // Only delete projects owned by user
+          },
+        })
+
+        if(ProjectToDelete.length === 0){
+          return {status:400,error:"No projects found for the given IDs"}
+        }
+        const deletedProjects = await client.project.deleteMany({
+          where:{
+            id:{
+              in: ProjectToDelete.map((projects)=>(projects.id))
+            }
+          }
+        })
+        return {
+          status:200,
+          message :` ${deletedProjects.count} projects deleted successfully`
+        }
+      }catch(error){
+          console.error('ERROR',error)
+          return {status :500,error:"Internal server error"}
+      }
+}
+
+
+export const getDeletedProjects = async ()=>{
+      try{
+          const checkUser = await onAuthenticateUser()
+          if(checkUser?.status !== 200 || !checkUser.user  )
+            return {status :403 ,error:"User not authenticated"}
+
+          const projects = await client.project.findMany({
+            where :{
+             userId:  checkUser.user.id,
+             isDeleted :true,
+            },
+            orderBy :{
+              updatedAt : "desc"
+            }
+          })
+             if(projects.length ===0){
+              return {status :400, message :'Not deleted projects found',data:[] }
+             }
+
+             return {status :200 , data :projects}
+
+        }catch(error){
+          return {status:500,error :"internal server error"}
+        }
+      }
+    
